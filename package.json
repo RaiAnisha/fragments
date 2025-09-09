@@ -11,5 +11,8 @@
     "url": "git+https://github.com/RaiAnisha/fragments.git"
   },
   "author": "Anisha Rai",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
 }
