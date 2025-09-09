@@ -1,5 +1,10 @@
 // src/server.js
-
+// Only print env vars when LOG_LEVEL is debug (last part for submission)
+if (process.env.LOG_LEVEL === 'debug') {
+  console.log('--- Environment Variables ---');
+  console.log(JSON.stringify(process.env, null, 2)); // pretty-print
+  console.log('-----------------------------');
+}
 // We want to gracefully shutdown our server
 const stoppable = require('stoppable');
 
@@ -16,8 +21,8 @@ const port = parseInt(process.env.PORT || '8080', 10);
 const server = stoppable(
   app.listen(port, () => {
     // Log a message that the server has started, and which port it's using.
-    console.log(`Server started on port ${port}`);
-    //logger.info(`Server started on port ${port}`);
+    //console.log(`Server started on port ${port}`);
+    logger.info(`Server started on port ${port}`);
   })
 );
 
