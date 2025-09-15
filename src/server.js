@@ -1,4 +1,5 @@
 // src/server.js
+require('dotenv').config();
 // Only print env vars when LOG_LEVEL is debug (last part for submission)
 if (process.env.LOG_LEVEL === 'debug') {
   console.log('--- Environment Variables ---');
