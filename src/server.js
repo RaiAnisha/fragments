@@ -1,11 +1,11 @@
 // src/server.js
 require('dotenv').config();
 // Only print env vars when LOG_LEVEL is debug (last part for submission)
-if (process.env.LOG_LEVEL === 'debug') {
-  console.log('--- Environment Variables ---');
-  console.log(JSON.stringify(process.env, null, 2)); // pretty-print
-  console.log('-----------------------------');
-}
+// if (process.env.LOG_LEVEL === 'debug') {
+//   console.log('--- Environment Variables ---');
+//   console.log(JSON.stringify(process.env, null, 2)); // pretty-print
+//   console.log('-----------------------------');
+// }
 // We want to gracefully shutdown our server
 const stoppable = require('stoppable');
 

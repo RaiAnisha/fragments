@@ -1,4 +1,6 @@
 // src/routes/index.js
+// Our authentication middleware
+const { authenticate } = require('../auth'); //step 62
 
 const express = require('express');
 
@@ -10,8 +12,15 @@ const router = express.Router();
 
 /**
  * Expose all of our API routes on /v1/* to include an API version.
+ * Protect them all with middleware so you have to be authenticated
+ * in order to access things.
  */
-router.use(`/v1`, require('./api'));
+router.use(`/v1`, authenticate(), require('./api'));
+
+/**
+ * Expose all of our API routes on /v1/* to include an API version.
+ */
+//router.use(`/v1`, require('./api'));
 
 /**
  * Define a simple health check route. If the server is running
