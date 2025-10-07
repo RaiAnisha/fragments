@@ -66,6 +66,86 @@
 
 // module.exports = router;
 
+// // src/routes/index.js
+// const { authenticate } = require('../auth');
+// const express = require('express');
+// const contentType = require('content-type');
+// const { createSuccessResponse } = require('../response');
+// const { version, author } = require('../../package.json');
+// const { Fragment } = require('../model/fragment');
+// const { writeFragment, writeFragmentData } = require('../model/data/memory/index');
+
+// const router = express.Router();
+
+// // Health check
+// router.get('/', (req, res) => {
+//   res.setHeader('Cache-Control', 'no-cache');
+//   res.status(200).json(
+//     createSuccessResponse({
+//       author,
+//       githubUrl: 'https://github.com/RaiAnisha/fragments',
+//       version,
+//     })
+//   );
+// });
+
+// // Raw body parser
+// const rawBody = () =>
+//   express.raw({
+//     inflate: true,
+//     limit: '5mb',
+//     type: (req) => {
+//       try {
+//         const ct = req.headers['content-type'];
+//         const { type } = contentType.parse(ct);
+//         return Fragment.isSupportedType(type);
+//       } catch {
+//         return false;
+//       }
+//     },
+//   });
+
+// // POST /v1/fragments
+// router.post('/fragments', authenticate(), rawBody(), async (req, res) => {
+//   try {
+//     const ownerId = req.user?.email;
+//     if (!ownerId) return res.status(401).json({ error: 'Unauthorized' });
+
+//     const { type } = contentType.parse(req);
+
+//     // First check if the type is supported
+//     if (!Fragment.isSupportedType(type)) {
+//       console.error(`Unsupported content type: ${type}`);
+//       return res.status(415).json({ error: `Unsupported Media Type: ${type}` });
+//     }
+
+//     // Then make sure the body is a Buffer
+//     if (!Buffer.isBuffer(req.body)) {
+//       return res.status(400).json({ error: 'Invalid or missing body data' });
+//     }
+
+//     // Set size here so tests pass
+//     const fragment = new Fragment({
+//       ownerId,
+//       type,
+//       size: req.body.length,
+//     });
+
+//     await writeFragment(fragment);
+//     await writeFragmentData(ownerId, fragment.id, req.body);
+
+//     const baseUrl = process.env.API_URL || `${req.protocol}://${req.headers.host}`;
+//     res.set('Location', `${baseUrl}/v1/fragments/${fragment.id}`);
+
+//     res.status(201).json(fragment);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
+
+// module.exports = router;
+
 // src/routes/index.js
 const { authenticate } = require('../auth');
 const express = require('express');
@@ -73,7 +153,10 @@ const contentType = require('content-type');
 const { createSuccessResponse } = require('../response');
 const { version, author } = require('../../package.json');
 const { Fragment } = require('../model/fragment');
-const { writeFragment, writeFragmentData } = require('../model/data/memory/index');
+
+const postRoute = require('./api/post');
+// src/routes/index.js
+const getRoute = require('./api/get');
 
 const router = express.Router();
 
@@ -89,15 +172,14 @@ router.get('/', (req, res) => {
   );
 });
 
-// Raw body parser
+// Raw body parser (reusable)
 const rawBody = () =>
   express.raw({
     inflate: true,
     limit: '5mb',
     type: (req) => {
       try {
-        const ct = req.headers['content-type'];
-        const { type } = contentType.parse(ct);
+        const { type } = contentType.parse(req);
         return Fragment.isSupportedType(type);
       } catch {
         return false;
@@ -105,43 +187,19 @@ const rawBody = () =>
     },
   });
 
+// GET /v1/fragments
+//router.get('/fragments', authenticate(), getRoute);
+
+router.get(
+  '/fragments',
+  authenticate(),
+  async (req, res, next) => {
+    console.log('DEBUG: /v1/fragments route hit, user=', req.user);
+    next(); // call the actual handler
+  },
+  getRoute
+);
 // POST /v1/fragments
-router.post('/v1/fragments', authenticate(), rawBody(), async (req, res) => {
-  try {
-    const ownerId = req.user?.email;
-    if (!ownerId) return res.status(401).json({ error: 'Unauthorized' });
-
-    const { type } = contentType.parse(req);
-
-    // First check if the type is supported
-    if (!Fragment.isSupportedType(type)) {
-      console.error(`Unsupported content type: ${type}`);
-      return res.status(415).json({ error: `Unsupported Media Type: ${type}` });
-    }
-
-    // Then make sure the body is a Buffer
-    if (!Buffer.isBuffer(req.body)) {
-      return res.status(400).json({ error: 'Invalid or missing body data' });
-    }
-
-    // Set size here so tests pass
-    const fragment = new Fragment({
-      ownerId,
-      type,
-      size: req.body.length,
-    });
-
-    await writeFragment(fragment);
-    await writeFragmentData(ownerId, fragment.id, req.body);
-
-    const baseUrl = process.env.API_URL || `${req.protocol}://${req.headers.host}`;
-    res.set('Location', `${baseUrl}/v1/fragments/${fragment.id}`);
-
-    res.status(201).json(fragment);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+router.post('/fragments', authenticate(), rawBody(), postRoute);
 
 module.exports = router;

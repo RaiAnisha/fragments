@@ -92,8 +92,6 @@
 // // Export our `app` so we can access it in server.js
 // module.exports = app;
 
-
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -115,8 +113,9 @@ app.use(compression());
 passport.use(authenticate.strategy());
 app.use(passport.initialize());
 
+//app.get('/v1/test', (req, res) => res.json({ ok: true })); //test
 // Routes
-app.use('/', require('./routes'));
+app.use('/v1', require('./routes'));
 
 // 404 middleware
 app.use((req, res) => {
