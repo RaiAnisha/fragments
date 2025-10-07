@@ -159,6 +159,8 @@ const postRoute = require('./api/post');
 const getRoute = require('./api/get');
 
 const router = express.Router();
+const api = require('./api');
+router.use('/v1', api);
 
 // Health check
 router.get('/', (req, res) => {
@@ -190,15 +192,7 @@ const rawBody = () =>
 // GET /v1/fragments
 //router.get('/fragments', authenticate(), getRoute);
 
-router.get(
-  '/fragments',
-  authenticate(),
-  async (req, res, next) => {
-    console.log('DEBUG: /v1/fragments route hit, user=', req.user);
-    next(); // call the actual handler
-  },
-  getRoute
-);
+router.get('/fragments', authenticate('bearer'), getRoute);
 // POST /v1/fragments
 router.post('/fragments', authenticate(), rawBody(), postRoute);
 

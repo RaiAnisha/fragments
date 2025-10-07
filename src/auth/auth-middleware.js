@@ -16,13 +16,13 @@ module.exports = (strategyName) => {
      * @param {Error} err - an error object
      * @param {string} email - an authenticated user's email address
      */
-    function callback(err, email) {
+    function callback(err, user) {
       // Something failed, let the the error handling middleware deal with it
       if (err) {
         logger.warn({ err }, 'error authenticating user');
         return next(createErrorResponse(500, 'Unable to authenticate user'));
       }
-
+      const email = user?.email;
       // Not authorized, return a 401
       if (!email) {
         return res.status(401).json(createErrorResponse(401, 'Unauthorized'));
@@ -31,12 +31,13 @@ module.exports = (strategyName) => {
       // Authorized. Hash the user's email, attach to the request, and continue
       req.user = hash(email);
 
-      // req.user = {
-      //   id: user.sub,                      // unique stable ID
-      //   username: user['cognito:username'],// optional
-      //   email: user.email,                 // optional
-      //   claims: user                       // keep full payload if you want
-      // };
+      req.user = {
+        id: user.sub, // unique stable ID
+        username: user['cognito:username'], // optional
+        email, // optional
+        hash: hash(email),
+        claims: user, // keep full payload if you want
+      };
       logger.debug({ email, hash: req.user }, 'Authenticated user');
 
       // Call the next function in the middleware chain (e.g. your route handler)
