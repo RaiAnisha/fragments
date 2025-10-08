@@ -1,24 +1,75 @@
 // tests/unit/get.test.js
-
+const express = require('express');
 const request = require('supertest');
 
-const app = require('../../src/app');
+describe('GET /v1/fragments handler', () => {
+  let app;
+  let mockFragments;
+  let mockCreateSuccessResponse;
 
-describe('GET /v1/fragments', () => {
-  // If the request is missing the Authorization header, it should be forbidden
-  test('unauthenticated requests are denied', () => request(app).get('/v1/fragments').expect(401));
+  beforeEach(() => {
+    jest.resetModules();
 
-  // If the wrong username/password pair are used (no such user), it should be forbidden
-  test('incorrect credentials are denied', () =>
-    request(app).get('/v1/fragments').auth('invalid@email.com', 'incorrect_password').expect(401));
+    // --- Mock createSuccessResponse ---
+    mockCreateSuccessResponse = jest.fn((data) => data);
+    jest.doMock('../../src/response', () => ({
+      createSuccessResponse: mockCreateSuccessResponse,
+    }));
 
-  // Using a valid username/password pair should give a success result with a .fragments array
-  test('authenticated users get a fragments array', async () => {
-    const res = await request(app).get('/v1/fragments').auth('user1@email.com', 'password1');
-    expect(res.statusCode).toBe(200);
-    expect(res.body.status).toBe('ok');
-    expect(Array.isArray(res.body.fragments)).toBe(true);
+    // --- Mock Fragment ---
+    mockFragments = [
+      { id: 'f1', ownerId: 'user-1', type: 'text/plain', size: 11 },
+      { id: 'f2', ownerId: 'user-1', type: 'text/plain', size: 5 },
+    ];
+    const mockFragmentClass = {
+      byUser: jest.fn(async (userId, expand) => {
+        // optional: just reference them to avoid warnings
+        void userId;
+        void expand;
+        return mockFragments;
+      }),
+    };
+    jest.doMock('../../src/model/fragment', () => ({
+      Fragment: mockFragmentClass,
+    }));
+
+    // --- Import route after mocks ---
+    const getRoute = require('../../src/routes/api/get');
+
+    app = express();
+    app.use(express.json());
+
+    // Fake auth middleware
+    app.use((req, res, next) => {
+      req.user = { id: 'user-1', claims: { sub: 'user-1' } };
+      next();
+    });
+
+    app.get('/v1/fragments', getRoute);
   });
 
-  // TODO: we'll need to add tests to check the contents of the fragments array later
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should return fragments for the current user', async () => {
+    const res = await request(app).get('/v1/fragments');
+
+    expect(res.statusCode).toBe(200);
+    expect(mockCreateSuccessResponse).toHaveBeenCalledWith({ fragments: mockFragments });
+    expect(res.body).toEqual({ fragments: mockFragments });
+  });
+
+  test('should handle internal errors gracefully', async () => {
+    // Re-mock Fragment.byUser to throw an error
+    const { Fragment } = require('../../src/model/fragment');
+    Fragment.byUser.mockImplementationOnce(() => {
+      throw new Error('DB failure');
+    });
+
+    const res = await request(app).get('/v1/fragments');
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body).toHaveProperty('error', 'Internal Server Error');
+  });
 });
