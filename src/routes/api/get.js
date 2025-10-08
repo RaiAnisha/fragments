@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
     const expand = req.query.expand === '1';
 
     // get fragments for this user
-    const fragments = await Fragment.byUser(req.user.email, expand);
+    const fragments = await Fragment.byUser(req.user.claims.sub, expand); ///HEELOO
 
     res.status(200).json(createSuccessResponse({ fragments }));
   } catch (err) {

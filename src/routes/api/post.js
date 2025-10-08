@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
 
     // Create new fragment
     const fragment = new Fragment({
-      ownerId: req.user.id || req.user.sub, //badal rhi hu mai jp
+      ownerId: req.user.claims.sub, //HEELOO
       type: fragmentType,
       size: buffer.length,
     });
@@ -69,7 +69,7 @@ module.exports = async (req, res) => {
     logger.info(`Creating new fragment: ${fragment.id} for user ${ownerId}`);
 
     await writeFragment(fragment);
-    await writeFragmentData(ownerId, fragment.id, buffer);
+    await writeFragmentData(req.user.claims.sub, fragment.id, buffer);
 
     const baseUrl = process.env.API_URL || `${req.protocol}://${req.headers.host}`;
     res.set('Location', `${baseUrl}/v1/fragments/${fragment.id}`);

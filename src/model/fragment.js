@@ -62,7 +62,7 @@ class Fragment {
    */
   static async byUser(ownerId, expand = false) {
     // TODO
-    const results = (await listFragments(ownerId, expand)) || []; // <-- ensure results is always an array
+    const results = (await listFragments(ownerId, true)) || []; // <-- ensure results is always an array
 
     if (expand) {
       return results.map((f) =>
