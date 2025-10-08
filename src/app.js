@@ -97,7 +97,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const passport = require('passport');
-
+const { createSuccessResponse } = require('./response');
+const { version, author } = require('../package.json');
 const logger = require('./logger');
 const pino = require('pino-http')({ logger });
 
@@ -119,6 +120,16 @@ app.use(express.json());
 // Routes
 app.use('/v1', require('./routes'));
 
+app.get('/', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.status(200).json(
+    createSuccessResponse({
+      author,
+      githubUrl: 'https://github.com/RaiAnisha/fragments',
+      version,
+    })
+  );
+});
 // 404 middleware
 app.use((req, res) => {
   res.status(404).json(createErrorResponse(404, 'not found'));
