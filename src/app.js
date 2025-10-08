@@ -97,10 +97,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const passport = require('passport');
-const { createSuccessResponse } = require('./response');
-const { version, author } = require('../package.json');
+
 const logger = require('./logger');
 const pino = require('pino-http')({ logger });
+
+const { createSuccessResponse } = require('./response');
+const { version, author } = require('../package.json'); ////new to make it work on localhost
 
 const app = express();
 app.use(cors());
@@ -121,6 +123,7 @@ app.use(express.json());
 app.use('/v1', require('./routes'));
 
 app.get('/', (req, res) => {
+  //to make it work on localhost
   res.setHeader('Cache-Control', 'no-cache');
   res.status(200).json(
     createSuccessResponse({
