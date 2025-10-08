@@ -60,14 +60,47 @@ class Fragment {
    * @param {boolean} expand whether to expand ids to full fragments
    * @returns Promise<Array<Fragment>>
    */
+  // static async byUser(ownerId, expand = false) {
+  //   // TODO
+  //   const results = (await listFragments(ownerId, true)) || []; //this true works!? yes
+
+  //   if (expand) {
+  //     return results.map((f) =>
+  //       typeof f === 'string' ? new Fragment(JSON.parse(f)) : new Fragment(f)
+  //     );
+  //   }
+
+  //   // Only return IDs
+  //   return results
+  //     .map((f) => {
+  //       if (typeof f === 'string') {
+  //         try {
+  //           return JSON.parse(f).id;
+  //         } catch {
+  //           return undefined;
+  //         }
+  //       }
+  //       if (f && f.id) return f.id;
+  //       return undefined;
+  //     })
+  //     .filter(Boolean);
+  // }
   static async byUser(ownerId, expand = false) {
-    // TODO
-    const results = (await listFragments(ownerId, true)) || []; // <-- ensure results is always an array
+    const results = (await listFragments(ownerId, true)) || [];
 
     if (expand) {
-      return results.map((f) =>
-        typeof f === 'string' ? new Fragment(JSON.parse(f)) : new Fragment(f)
-      );
+      return results.map((f) => {
+        const frag = typeof f === 'string' ? new Fragment(JSON.parse(f)) : new Fragment(f);
+        // convert instance to plain object
+        return {
+          id: frag.id,
+          type: frag.type,
+          size: frag.size,
+          ownerId: frag.ownerId,
+          created: frag.created,
+          updated: frag.updated,
+        };
+      });
     }
 
     // Only return IDs

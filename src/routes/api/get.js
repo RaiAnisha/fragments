@@ -36,10 +36,10 @@ module.exports = async (req, res) => {
     // }
 
     // check query param: /v1/fragments?expand=1
-    const expand = req.query.expand === '1';
+    //const expand = req.query.expand === '1';
 
     // get fragments for this user
-    const fragments = await Fragment.byUser(req.user.claims.sub, expand); ///HEELOO
+    const fragments = await Fragment.byUser(req.user.claims.sub, true); ///HEELOO
 
     res.status(200).json(createSuccessResponse({ fragments }));
   } catch (err) {
