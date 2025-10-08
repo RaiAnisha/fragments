@@ -13,11 +13,14 @@ const logger = require('../../logger'); // if you have a logger helper, otherwis
  */
 module.exports = async (req, res) => {
   //try {
-  const ownerId = req.user?.email;
+  const ownerId = req.user.id;
   // if (!ownerId) {
   //   logger.warn('Unauthorized request to POST /fragments');
   //   return res.status(401).json({ error: 'Unauthorized' });
   // }
+  //const type = req.get('Content-Type');
+  //const content = req.body;
+  const { type: fragmentType, data: content } = req.body || {};
 
   //jp const type = req.headers['content-type'] || 'text/plain';
   // try {
@@ -26,18 +29,20 @@ module.exports = async (req, res) => {
   //   logger.warn(`Invalid content-type header: ${req.headers['content-type']}`);
   //   return res.status(400).json({ error: 'Invalid Content-Type header', err });
   // }
+  console.log('req.user:', req.user); // ✅ this will print
+  console.log('req.body:', req.body);
 
   try {
     // Expect JSON body: { type: 'text/plain', content: '...' }
-    const { type, content } = req.body || {};
+    // const { type, content } = req.body || {};
 
-    console.log('Received type:', type);
+    console.log('Received type:', fragmentType);
     console.log('Received content:', content);
 
     // Check if type is supported
-    if (!type || !Fragment.isSupportedType(type)) {
-      logger.warn(`Unsupported content type: ${type}`);
-      return res.status(415).json({ error: `Unsupported Media Type: ${type}` });
+    if (!fragmentType || !Fragment.isSupportedType(fragmentType)) {
+      logger.warn(`Unsupported content type: ${fragmentType}`);
+      return res.status(415).json({ error: `Unsupported Media Type: ${fragmentType}` });
     }
 
     if (!content || typeof content !== 'string') {
@@ -54,10 +59,12 @@ module.exports = async (req, res) => {
 
     // Create new fragment
     const fragment = new Fragment({
-      ownerId: req.user.sub, //badal rhi hu mai jp
-      type,
+      ownerId: req.user.id || req.user.sub, //badal rhi hu mai jp
+      type: fragmentType,
       size: buffer.length,
     });
+    console.log('req.user:', req.user);
+    console.log('req.body:', req.body);
 
     logger.info(`Creating new fragment: ${fragment.id} for user ${ownerId}`);
 

@@ -97,21 +97,23 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const passport = require('passport');
-const authenticate = require('./auth');
 
 const logger = require('./logger');
 const pino = require('pino-http')({ logger });
-const { createErrorResponse } = require('./response'); // import the helper
 
 const app = express();
+app.use(cors());
+//app.options('*', cors());
 app.use(pino);
 app.use(helmet());
-app.use(cors());
-app.use(compression());
 
+app.use(compression());
+const authenticate = require('./auth');
+const { createErrorResponse } = require('./response'); // import the helper
 // Passport auth
 passport.use(authenticate.strategy());
 app.use(passport.initialize());
+app.use(express.json());
 
 //app.get('/v1/test', (req, res) => res.json({ ok: true })); //test
 // Routes
