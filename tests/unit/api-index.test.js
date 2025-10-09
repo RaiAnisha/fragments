@@ -9,13 +9,11 @@ describe('POST /v1/fragments router', () => {
   beforeEach(() => {
     jest.resetModules();
 
-    // --- Mock createFragment helper ---
     mockCreateFragment = jest.fn();
     jest.doMock('../../src/routes/api/post', () => ({
       createFragment: mockCreateFragment,
     }));
 
-    // --- Import router after mocks ---
     const router = require('../../src/routes/api/index');
 
     app = express();

@@ -60,31 +60,7 @@ class Fragment {
    * @param {boolean} expand whether to expand ids to full fragments
    * @returns Promise<Array<Fragment>>
    */
-  // static async byUser(ownerId, expand = false) {
-  //   // TODO
-  //   const results = (await listFragments(ownerId, true)) || []; //this true works!? yes
 
-  //   if (expand) {
-  //     return results.map((f) =>
-  //       typeof f === 'string' ? new Fragment(JSON.parse(f)) : new Fragment(f)
-  //     );
-  //   }
-
-  //   // Only return IDs
-  //   return results
-  //     .map((f) => {
-  //       if (typeof f === 'string') {
-  //         try {
-  //           return JSON.parse(f).id;
-  //         } catch {
-  //           return undefined;
-  //         }
-  //       }
-  //       if (f && f.id) return f.id;
-  //       return undefined;
-  //     })
-  //     .filter(Boolean);
-  // }
   static async byUser(ownerId, expand = false) {
     const results = (await listFragments(ownerId, true)) || [];
 
@@ -126,7 +102,6 @@ class Fragment {
    * @returns Promise<Fragment>
    */
   static async byId(ownerId, id) {
-    // TODO
     // TIP: make sure you properly re-create a full Fragment instance after getting from db.
     const fragment = await readFragment(ownerId, id);
     if (!fragment) {
@@ -142,7 +117,6 @@ class Fragment {
    * @returns Promise<void>
    */
   static delete(ownerId, id) {
-    // TODO
     return readFragment(ownerId, id).then((frag) => {
       if (frag && frag.ownerId === ownerId) {
         return deleteFragment(ownerId, id);
@@ -156,7 +130,6 @@ class Fragment {
    */
 
   save() {
-    // TODO
     this.updated = new Date().toISOString();
 
     return writeFragment({
@@ -174,7 +147,6 @@ class Fragment {
    * @returns Promise<Buffer>
    */
   getData() {
-    // TODO
     return readFragmentData(this.ownerId, this.id);
   }
 
@@ -184,7 +156,6 @@ class Fragment {
    * @returns Promise<void>
    */
   async setData(data) {
-    // TODO
     // TIP: make sure you update the metadata whenever you change the data, so they match
     if (!Buffer.isBuffer(data)) {
       throw new Error('data must be a Buffer');
@@ -211,7 +182,6 @@ class Fragment {
    * @returns {boolean} true if fragment's type is text/*
    */
   get isText() {
-    // TODO
     return this.mimeType.startsWith('text/');
   }
 
@@ -220,7 +190,6 @@ class Fragment {
    * @returns {Array<string>} list of supported mime types
    */
   get formats() {
-    // TODO
     const supported = {
       'text/plain': ['text/plain'],
       'text/markdown': ['text/markdown', 'text/plain', 'text/html'],
@@ -236,7 +205,6 @@ class Fragment {
    * @returns {boolean} true if we support this Content-Type (i.e., type/subtype)
    */
   static isSupportedType(value) {
-    // TODO
     try {
       const { type } = contentType.parse(value);
       return ['text/plain', 'text/markdown', 'text/html', 'application/json'].includes(type);

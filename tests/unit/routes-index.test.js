@@ -2,7 +2,6 @@
 const express = require('express');
 const request = require('supertest');
 
-// --- Mock dependencies ---
 const mockGetHandler = jest.fn((req, res) => res.status(200).json({ ok: true }));
 const mockPostHandler = jest.fn((req, res) => res.status(201).json({ ok: true }));
 
@@ -10,7 +9,6 @@ jest.mock('../../src/auth', () => ({
   authenticate: jest.fn(() => (req, res, next) => next()),
 }));
 
-// Mock the API router itself
 jest.mock('../../src/routes/api', () => {
   const express = require('express');
   const router = express.Router();
@@ -30,13 +28,11 @@ describe('src/routes/index.js', () => {
     app.use(router);
   });
 
-  // --- Base health check ---
   test('GET / should return health check with status ok', async () => {
     const res = await request(app).get('/');
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe('ok');
 
-    // fallback to flat object if data is missing
     const data = res.body.data || res.body;
     expect(data).toHaveProperty('author');
     expect(data).toHaveProperty('version');
@@ -52,7 +48,6 @@ describe('src/routes/index.js', () => {
     expect(data.githubUrl).toContain('github.com/RaiAnisha/fragments');
   });
 
-  // --- Basic API route mocks ---
   test('GET /v1/fragments should return 200 from mock API router', async () => {
     const res = await request(app).get('/v1/fragments');
     expect(res.statusCode).toBe(200);
@@ -68,7 +63,6 @@ describe('src/routes/index.js', () => {
     expect(res.body).toEqual({ ok: true });
   });
 
-  // --- Additional coverage ---
   describe('additional route behaviors', () => {
     test('should use /v1 prefix and call GET route when authenticated', async () => {
       const res = await request(app).get('/v1/fragments');

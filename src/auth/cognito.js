@@ -25,7 +25,7 @@ logger.info('Using AWS Cognito for auth');
 const jwtVerifier = CognitoJwtVerifier.create({
   userPoolId: process.env.AWS_COGNITO_POOL_ID,
   clientId: process.env.AWS_COGNITO_CLIENT_ID,
-  // We expect an Identity Token (vs. Access Token)
+
   tokenUse: 'id',
 });
 
@@ -47,11 +47,11 @@ module.exports.strategy = () =>
   // in the Authorization header, then verify that with our Cognito JWT Verifier.
   new BearerStrategy(async (token, done) => {
     try {
-      // Verify this JWT
+      // Verify
       const user = await jwtVerifier.verify(token);
       logger.debug({ user }, 'verified user token');
 
-      // Create a user, but only bother with their email
+      // Create a user
       done(null, user);
     } catch (err) {
       logger.error({ err, token }, 'could not verify token');

@@ -1,6 +1,6 @@
 const MemoryDB = require('./memory-db');
 
-// Create two in-memory databases: one for fragment metadata and the other for raw data
+// Creating two in-memory databases: one for fragment metadata and the other for raw data
 const data = new MemoryDB();
 const metadata = new MemoryDB();
 
@@ -49,13 +49,10 @@ async function listFragments(ownerId, expand = false) {
   const fragments = await metadata.query(ownerId);
 
   if (!fragments) {
-    console.log('This is !fragments');
     return []; // no fragments
   }
 
   if (expand) {
-    // Return full fragment objects
-    console.log('This is expand');
     return fragments.map((fragment) => JSON.parse(fragment));
   } else {
     // Only return fragment IDs
@@ -68,7 +65,7 @@ async function listFragments(ownerId, expand = false) {
           return null; // skip invalid entries
         }
       })
-      .filter((id) => id !== null); // remove nulls
+      .filter((id) => id !== null); // removing nulls
   }
 }
 

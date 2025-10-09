@@ -3,13 +3,11 @@ const authMiddleware = require('../../src/auth/auth-middleware');
 const passport = require('passport');
 const { createErrorResponse } = require('../../src/response');
 
-// Mock logger to prevent noisy output
 jest.mock('../../src/logger', () => ({
   warn: jest.fn(),
   debug: jest.fn(),
 }));
 
-// Mock hash function
 jest.mock('../../src/hash', () => jest.fn((email) => `hashed-${email}`));
 
 describe('auth-middleware', () => {
@@ -41,7 +39,6 @@ describe('auth-middleware', () => {
     const middleware = authMiddleware('bearer');
     middleware(req, res, next);
 
-    // ⚠️ Only check that important fields exist, ignore extra nesting
     expect(req.user).toEqual(
       expect.objectContaining({
         id: 'user1-id',
@@ -63,7 +60,7 @@ describe('auth-middleware', () => {
     passport.authenticate = jest.fn((strategy, options, callback) => {
       return (req, res, next) => {
         (void req, res, next);
-        callback(null, {}); // user without email
+        callback(null, {});
       };
     });
 

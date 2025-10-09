@@ -15,16 +15,6 @@ describe('In-Memory Fragment DB', () => {
   const fragment = { id: fragmentId, ownerId, type: 'text/plain', size: 5 };
   const buffer = Buffer.from('hello');
 
-  // Cleanup after each test safely
-  // afterEach(async () => {
-  //   try {
-  //     await deleteFragment(ownerId, fragmentId);
-  //     await deleteFragment(ownerId, 'frag2'); // for partial fragment tests
-  //   } catch (err) {
-  //     // ignore missing entries
-  //   }
-  // });
-
   test('writeFragment and readFragment', async () => {
     await writeFragment(fragment);
     const result = await readFragment(ownerId, fragmentId);
@@ -37,33 +27,6 @@ describe('In-Memory Fragment DB', () => {
     expect(result).toEqual(buffer);
   });
 
-  // test('listFragments returns ids by default', async () => {
-  //   await writeFragment(fragment);
-  //   const ids = await listFragments(ownerId);
-
-  //   // Convert serialized strings to objects then get IDs
-  //   const parsedIds = ids.map((f) => (typeof f === 'string' ? JSON.parse(f).id : f));
-  //   expect(parsedIds).toContain(fragmentId);
-  // });
-
-  // test('listFragments returns ids by default', async () => {
-  //   // Make sure fragment is written
-  //   await writeFragment(fragment);
-
-  //   // List fragments
-  //   const ids = await listFragments(ownerId);
-
-  //   // Guard: if null or undefined, set empty array
-  //   const safeIds = Array.isArray(ids) ? ids : [];
-
-  //   // Convert serialized strings to IDs
-  //   const parsedIds = safeIds.map((f) => {
-  //     if (!f) return undefined;
-  //     return typeof f === 'string' ? JSON.parse(f).id : f;
-  //   });
-
-  //   expect(parsedIds).toContain(fragmentId);
-  // });
   test('listFragments returns something', async () => {
     const ownerId = 'user1';
     const fragmentId = 'frag1';
@@ -74,7 +37,6 @@ describe('In-Memory Fragment DB', () => {
 
     const result = await listFragments(ownerId);
 
-    // Since MemoryDB query seems broken, we can only assert it's an array
     expect(Array.isArray(result)).toBe(true);
   });
 
@@ -82,7 +44,6 @@ describe('In-Memory Fragment DB', () => {
     await writeFragment(fragment);
     const expanded = await listFragments(ownerId, true);
 
-    // Parse each item if it is a string
     const parsed = expanded.map((f) => (typeof f === 'string' ? JSON.parse(f) : f));
     expect(parsed).toEqual(expect.arrayContaining([fragment]));
   });
@@ -100,7 +61,6 @@ describe('In-Memory Fragment DB', () => {
     expect(data).toBeUndefined();
   });
 
-  // ===== Edge Cases =====
   test('readFragment for non-existent fragment returns undefined', async () => {
     const result = await readFragment(ownerId, 'nonexistent');
     expect(result).toBeUndefined();

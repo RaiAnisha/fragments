@@ -17,7 +17,6 @@ module.exports = (strategyName) => {
      * @param {string} email - an authenticated user's email address
      */
     function callback(err, user) {
-      // Something failed, let the the error handling middleware deal with it
       if (err) {
         logger.warn({ err }, 'error authenticating user');
         return next(createErrorResponse(500, 'Unable to authenticate user'));
@@ -28,24 +27,20 @@ module.exports = (strategyName) => {
         return res.status(401).json(createErrorResponse(401, 'Unauthorized'));
       }
 
-      // Authorized. Hash the user's email, attach to the request, and continue
       req.user = hash(email);
 
       req.user = {
-        id: user.sub, // unique stable ID
-        username: user['cognito:username'], // optional
-        email, // optional
+        id: user.sub,
+        username: user['cognito:username'],
+        email,
         hash: hash(email),
-        claims: user, // keep full payload if you want
+        claims: user,
       };
       logger.debug({ email, hash: req.user }, 'Authenticated user');
 
-      // Call the next function in the middleware chain (e.g. your route handler)
       next();
     }
 
-    // Call the given passport strategy's authenticate() method, passing the
-    // req, res, next objects.  Invoke our custom callback when done.
     passport.authenticate(strategyName, { session: false }, callback)(req, res, next);
   };
 };

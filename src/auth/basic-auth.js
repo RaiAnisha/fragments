@@ -14,12 +14,10 @@ if (!process.env.HTPASSWD_FILE) {
   throw new Error('missing expected env var: HTPASSWD_FILE');
 }
 
-// Log that we're using Basic Auth
+// Log using Basic Auth
 logger.info('Using HTTP Basic Auth for auth');
 
 module.exports.strategy = () =>
-  // For our Passport authentication strategy, we'll look for a
-  // username/password pair in the Authorization header.
   authPassport(
     auth.basic({
       file: process.env.HTPASSWD_FILE,
