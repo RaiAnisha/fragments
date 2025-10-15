@@ -1,4 +1,7 @@
-FROM node:20.17.0
+# ===================== Stage 1: Build =====================
+FROM node:20.17.0-alpine AS builder
+# OPTIMIZATION: added -alpine for smaller image size 
+
 # We wil be writing important steps & information regarding the project here!
 
 # Every Dockerfile must begin with a FROM instruction. This specifies the parent (or base) image to use as a starting point for our own image.
@@ -50,13 +53,28 @@ COPY ./src ./src
 # Copy our HTPASSWD file
 COPY ./tests/.htpasswd ./tests/.htpasswd
 
-# Start the container by running our server
-CMD npm start
+# ===================== Stage 2: Runtime =====================
 
-# We run our service on port 8080
+FROM node:20.17.0-alpine
+# OPTIMIZATION: runtime image only includes what's needed
+
+# Set working directory
+WORKDIR /app
+
+# Copy everything from builder stage
+COPY --from=builder /app /app
+
+# Keep environment variables and port
+ENV PORT=8080
 EXPOSE 8080
 
+# Start the container by running our server
+CMD ["npm", "start"]
+
+# ===================== Notes =====================
 
 #Confirm that you can see your built image using the 'docker image ls  fragments'command
 
 #to stop a container - docker ps, docker stop <container_id>
+
+#With the ! prefix, we can un-ignore this individual path inside tests/, which is being ignored otherwise.
