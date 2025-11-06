@@ -13,7 +13,9 @@ const logger = require('../../logger'); // if you have a logger helper, otherwis
  */
 module.exports = async (req, res) => {
   const ownerId = req.user.id;
-  const { type: fragmentType, data: content } = req.body || {};
+  //const { type: fragmentType, data: content } = req.body || {};
+  const fragmentType = req.get('Content-Type'); // get type from HTTP header
+  const content = req.body.data; // only content comes from client
 
   console.log('req.user:', req.user); //debugging
   console.log('req.body:', req.body);
@@ -30,7 +32,7 @@ module.exports = async (req, res) => {
       return res.status(415).json({ error: `Unsupported Media Type: ${fragmentType}` });
     }
 
-    if (!content || typeof content !== 'string') {
+    if (!content) {
       logger.warn('Invalid or missing content');
       return res.status(400).json({ error: 'Invalid or missing content' });
     }
