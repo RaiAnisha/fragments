@@ -17,7 +17,7 @@ app.use(helmet());
 
 app.use(compression());
 const authenticate = require('./auth');
-const { createErrorResponse } = require('./response'); // import the helper
+const { createErrorResponse } = require('./response');
 // Passport auth
 passport.use(authenticate.strategy());
 app.use(passport.initialize());

@@ -1,42 +1,3 @@
-// // src/routes/api/getById.js
-// const { Fragment } = require('../../model/fragment');
-// const { createErrorResponse } = require('../../response');
-
-// module.exports = async (req, res) => {
-//   console.log('getById.js route IS HIT HERE!!');
-//   console.log('req.params:', req.params);
-//   console.log('req.user.claims.sub:', req.user?.claims?.sub);
-//   try {
-//     const { id } = req.params;
-//     const ownerId = req.user?.claims?.sub;
-
-//     if (!ownerId) {
-//       console.error('No ownerId in request – user not authenticated');
-//       return res.status(401).json(createErrorResponse(401, 'Unauthorized'));
-//     }
-
-//     const fragment = await Fragment.byId(ownerId, id);
-
-//     if (!fragment) {
-//       console.error(`Fragment with id=${id} not found for owner=${ownerId}`);
-//       return res.status(404).json(createErrorResponse(404, 'Fragment not found'));
-//     }
-
-//     const data = await fragment.getData(); // Buffer
-
-//     if (!data) {
-//       console.error(`Fragment data empty for id=${id}, owner=${ownerId}`);
-//       return res.status(404).json(createErrorResponse(404, 'Fragment data not found'));
-//     }
-
-//     res.set('Content-Type', fragment.type);
-//     return res.status(200).send(data);
-//   } catch (err) {
-//     console.error('Unexpected error fetching fragment data:', err);
-//     return res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
-//   }
-// };
-
 // src/routes/api/getById.js - works but returns wrong things
 // const { Fragment } = require('../../model/fragment');
 // const { createErrorResponse, createSuccessResponse } = require('../../response');
@@ -90,23 +51,34 @@
 //     return res.status(500).json(createErrorResponse(500, 'Internal server error'));
 //   }
 // };
-
+//*****************************************************************************************************
 // src/routes/api/getById.js
 const { Fragment } = require('../../model/fragment');
 const { createErrorResponse } = require('../../response');
+const MarkdownIt = require('markdown-it');
+const md = new MarkdownIt();
 
 /**
  * GET /v1/fragments/:id
- * Returns the raw fragment data by default.
- * Optional ?metadata=true to return JSON metadata instead.
+ * Handles both:
+ *  - /v1/fragments/:id          → raw fragment or ?metadata=true
+ *  - /v1/fragments/:id.ext      → converted fragment (Markdown → HTML, etc.)
  */
 module.exports = async (req, res) => {
   try {
-    const { id } = req.params;
+    let { id } = req.params;
     const ownerId = req.user?.claims?.sub;
 
     if (!ownerId) {
       return res.status(401).json(createErrorResponse(401, 'Unauthorized'));
+    }
+
+    // Detecting extension (.:ext part)
+    let ext = null;
+    if (id.includes('.')) {
+      const parts = id.split('.');
+      id = parts[0];
+      ext = parts[1].toLowerCase();
     }
 
     const fragment = await Fragment.byId(ownerId, id).catch(() => null);
@@ -115,7 +87,6 @@ module.exports = async (req, res) => {
       return res.status(404).json(createErrorResponse(404, 'Fragment not found'));
     }
 
-    // If ?metadata=true, return metadata JSON
     if (req.query.metadata === 'true') {
       return res.status(200).json({
         status: 'ok',
@@ -130,12 +101,49 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Otherwise, return raw fragment content
     const data = await fragment.getData();
     if (!data) {
       return res.status(404).json(createErrorResponse(404, 'Fragment data not found'));
     }
 
+    if (ext) {
+      //console.log(`[DEBUG] Extension detected: .${ext}`);
+
+      // md to HTML conversion
+      if (ext === 'html' && fragment.mimeType === 'text/markdown') {
+        const html = md.render(data.toString('utf-8'));
+        res.set('Content-Type', 'text/html');
+        return res.status(200).send(html);
+      }
+
+      // Supported conversions
+      const mimeMap = {
+        txt: 'text/plain',
+        md: 'text/markdown',
+        html: 'text/html',
+        json: 'application/json',
+        png: 'image/png',
+        jpeg: 'image/jpeg',
+        jpg: 'image/jpeg',
+        webp: 'image/webp',
+        gif: 'image/gif',
+      };
+
+      const targetType = mimeMap[ext];
+      if (!targetType) {
+        return res.status(415).json(createErrorResponse(415, `Unsupported extension: .${ext}`));
+      }
+
+      // If the requested format matches or is available, return it
+      if (fragment.mimeType === targetType || fragment.formats.includes(targetType)) {
+        res.set('Content-Type', targetType);
+        return res.status(200).send(data);
+      }
+
+      return res.status(415).json(createErrorResponse(415, `Conversion to .${ext} not supported`));
+    }
+
+    // Case default
     res.set('Content-Type', fragment.type);
     return res.status(200).send(data);
   } catch (err) {

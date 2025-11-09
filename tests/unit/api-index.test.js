@@ -1,59 +1,65 @@
-// tests/unit/index.test.js
+// tests/unit/api-index.test.js
 const express = require('express');
 const request = require('supertest');
 
-describe('POST /v1/fragments router', () => {
+describe('API Router', () => {
   let app;
-  let mockCreateFragment;
+  let mockGet;
+  let mockPost;
 
   beforeEach(() => {
     jest.resetModules();
 
-    mockCreateFragment = jest.fn();
-    jest.doMock('../../src/routes/api/post', () => ({
-      createFragment: mockCreateFragment,
-    }));
+    // Mock the route handlers
+    mockGet = jest.fn((req, res) => {
+      res.status(200).json({ fragments: [{ id: 'f1' }, { id: 'f2' }] });
+    });
+    mockPost = jest.fn((req, res) => {
+      const { type, data } = req.body;
+      if (!type || !data) {
+        return res.status(400).json({ error: 'Missing type or data' });
+      }
+      return res.status(201).json({ fragment: { id: 'f1', type, size: data.length } });
+    });
+
+    // Mock the modules exactly like api/index.js expects
+    jest.doMock('../../src/routes/api/get', () => mockGet);
+    jest.doMock('../../src/routes/api/post', () => mockPost);
 
     const router = require('../../src/routes/api/index');
 
     app = express();
     app.use(express.json());
-
-    // Fake auth middleware
-    app.use((req, res, next) => {
-      req.user = { claims: { sub: 'user-1' } };
-      next();
-    });
-
-    app.use(router);
+    app.use('/v1', router); // mount router at /v1
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  test('should create a fragment successfully', async () => {
-    const fakeFragment = { id: 'f1', type: 'text/plain', size: 11 };
-    mockCreateFragment.mockResolvedValueOnce(fakeFragment);
+  test('GET /v1/fragments returns fragments successfully', async () => {
+    const res = await request(app).get('/v1/fragments');
 
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ fragments: [{ id: 'f1' }, { id: 'f2' }] });
+    expect(mockGet).toHaveBeenCalled();
+  });
+
+  test('POST /v1/fragments creates a fragment successfully', async () => {
     const res = await request(app)
       .post('/v1/fragments')
       .send({ type: 'text/plain', data: 'Hello world' });
 
     expect(res.statusCode).toBe(201);
-    expect(res.body).toEqual({ fragment: fakeFragment });
-    expect(mockCreateFragment).toHaveBeenCalledWith('user-1', 'text/plain', 'Hello world');
+    expect(res.body).toEqual({ fragment: { id: 'f1', type: 'text/plain', size: 11 } });
+    expect(mockPost).toHaveBeenCalled();
   });
 
-  test('should return 400 when createFragment throws an error', async () => {
-    mockCreateFragment.mockRejectedValueOnce(new Error('Invalid type'));
-
-    const res = await request(app)
-      .post('/v1/fragments')
-      .send({ type: 'invalid/type', data: 'Hello world' });
+  test('POST /v1/fragments returns 400 if missing type or data', async () => {
+    const res = await request(app).post('/v1/fragments').send({}); // missing type and data
 
     expect(res.statusCode).toBe(400);
-    expect(res.body).toHaveProperty('error', 'Invalid type');
-    expect(mockCreateFragment).toHaveBeenCalledWith('user-1', 'invalid/type', 'Hello world');
+    expect(res.body).toHaveProperty('error', 'Missing type or data');
+    expect(mockPost).toHaveBeenCalled();
   });
 });

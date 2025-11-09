@@ -10,7 +10,6 @@ const postRoute = require('./api/post');
 const getRoute = require('./api/get');
 const getByIdRoute = require('./api/getById');
 const getInfo = require('./api/getInfo');
-//const getByExt = require('./api/getByExt');
 
 const router = express.Router();
 const api = require('./api');
@@ -51,13 +50,6 @@ router.post('/fragments', authenticate(), rawBody(), postRoute);
 router.get('/fragments/:id', authenticate('bearer'), getByIdRoute);
 // GET /v1/fragments/:id/info → retrieve metadata for a fragment
 router.get('/fragments/:id/info', authenticate('bearer'), getInfo);
-// GET /v1/fragments/:id.:ext  <-- your new route
-//router.get('/fragments/:idWithExt', authenticate('bearer'), getByExt);
-router.get('/fragments/:id.:ext', (req, res) => {
-  console.log('[DEBUG] getByExt route hit');
-  res.status(200).json({ params: req.params });
-});
-
-//router.get('/fragments/:id.:ext', authenticate('bearer'), getByExt);
+// GET /v1/fragments/:id.:ext  -> works inside :id only!
 
 module.exports = router;
