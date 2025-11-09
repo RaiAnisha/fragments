@@ -4,7 +4,6 @@ const request = require('supertest');
 const getInfoRoute = require('../../src/routes/api/getInfo');
 const { createSuccessResponse, createErrorResponse } = require('../../src/response');
 
-// Mock the Fragment model
 jest.mock('../../src/model/fragment', () => ({
   Fragment: {
     byId: jest.fn((ownerId, id) => {
@@ -29,7 +28,6 @@ describe('GET /v1/fragments/:id/info', () => {
     app = express();
     app.use(express.json());
 
-    // Auth middleware for all tests except 401 simulation
     app.use((req, res, next) => {
       req.user = { claims: { sub: 'user1' } };
       next();
@@ -68,7 +66,6 @@ describe('GET /v1/fragments/:id/info', () => {
   });
 
   test('should return 404 if user is not authenticated', async () => {
-    // App without auth middleware
     const appNoAuth = express();
     appNoAuth.use(express.json());
     appNoAuth.get('/v1/fragments/:id/info', getInfoRoute);
@@ -79,7 +76,6 @@ describe('GET /v1/fragments/:id/info', () => {
   });
 
   test('should handle unexpected errors gracefully', async () => {
-    // Mock Fragment.byId to throw an unexpected error
     const { Fragment } = require('../../src/model/fragment');
     Fragment.byId.mockImplementationOnce(() => {
       throw new Error('Unexpected');

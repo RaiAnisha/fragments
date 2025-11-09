@@ -9,7 +9,6 @@ describe('POST /v1/fragments handler', () => {
   beforeEach(() => {
     jest.resetModules();
 
-    // Mock logger
     jest.doMock('../../src/logger', () => ({
       info: jest.fn(),
       warn: jest.fn(),
@@ -17,7 +16,6 @@ describe('POST /v1/fragments handler', () => {
       debug: jest.fn(),
     }));
 
-    // Mock Fragment class
     jest.doMock('../../src/model/fragment', () => {
       class Fragment {
         constructor({ ownerId, type, size }) {
@@ -33,7 +31,6 @@ describe('POST /v1/fragments handler', () => {
       return { Fragment };
     });
 
-    // Mock data layer
     mockWriteFragment = jest.fn().mockResolvedValue(true);
     mockWriteFragmentData = jest.fn().mockResolvedValue(true);
     jest.doMock('../../src/model/data', () => ({
@@ -44,10 +41,9 @@ describe('POST /v1/fragments handler', () => {
     const postRoute = require('../../src/routes/api/post');
 
     app = express();
-    // parse body as text so string, object, or buffer works
+
     app.use(express.text({ type: '*/*' }));
 
-    // Fake auth middleware
     app.use((req, res, next) => {
       req.user = { id: 'user-1', claims: { sub: 'user-1' } };
       next();
@@ -58,7 +54,7 @@ describe('POST /v1/fragments handler', () => {
 
   afterEach(async () => {
     jest.clearAllMocks();
-    // Close server connections if any
+
     if (app && app.close) await app.close();
   });
 
@@ -126,7 +122,7 @@ describe('POST /v1/fragments handler', () => {
       .send('Hello world');
 
     expect(res.statusCode).toBe(500);
-    // Match the actual structure returned by createErrorResponse
+
     expect(res.body).toEqual({
       status: 'error',
       error: { code: 500, message: 'Internal Server Error' },
