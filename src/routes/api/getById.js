@@ -61,8 +61,8 @@ const md = new MarkdownIt();
 /**
  * GET /v1/fragments/:id
  * Handles both:
- *  - /v1/fragments/:id          → raw fragment or ?metadata=true
- *  - /v1/fragments/:id.ext      → converted fragment (Markdown → HTML, etc.)
+ *  - /v1/fragments/:id           raw fragment or ?metadata=true
+ *  - /v1/fragments/:id.ext      converted fragment
  */
 module.exports = async (req, res) => {
   try {
@@ -134,7 +134,6 @@ module.exports = async (req, res) => {
         return res.status(415).json(createErrorResponse(415, `Unsupported extension: .${ext}`));
       }
 
-      // If the requested format matches or is available, return it
       if (fragment.mimeType === targetType || fragment.formats.includes(targetType)) {
         res.set('Content-Type', targetType);
         return res.status(200).send(data);

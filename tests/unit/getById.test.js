@@ -34,7 +34,6 @@ describe('GET /v1/fragments/:id', () => {
     app = express();
     app.use(express.json());
 
-    // Fake auth middleware
     app.use((req, res, next) => {
       req.user = { claims: { sub: 'user1' } };
       next();

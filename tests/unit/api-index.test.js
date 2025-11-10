@@ -10,7 +10,6 @@ describe('API Router', () => {
   beforeEach(() => {
     jest.resetModules();
 
-    // Mock the route handlers
     mockGet = jest.fn((req, res) => {
       res.status(200).json({ fragments: [{ id: 'f1' }, { id: 'f2' }] });
     });
@@ -22,7 +21,6 @@ describe('API Router', () => {
       return res.status(201).json({ fragment: { id: 'f1', type, size: data.length } });
     });
 
-    // Mock the modules exactly like api/index.js expects
     jest.doMock('../../src/routes/api/get', () => mockGet);
     jest.doMock('../../src/routes/api/post', () => mockPost);
 
