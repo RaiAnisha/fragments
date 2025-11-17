@@ -57,6 +57,8 @@ const { Fragment } = require('../../model/fragment');
 const { createErrorResponse } = require('../../response');
 const MarkdownIt = require('markdown-it');
 const md = new MarkdownIt();
+const hash = require('../../hash');
+const contentType = require('content-type');
 
 /**
  * GET /v1/fragments/:id
@@ -67,7 +69,7 @@ const md = new MarkdownIt();
 module.exports = async (req, res) => {
   try {
     let { id } = req.params;
-    const ownerId = req.user?.claims?.sub;
+    const ownerId = hash(req.user?.claims);
 
     if (!ownerId) {
       return res.status(401).json(createErrorResponse(401, 'Unauthorized'));
@@ -112,7 +114,7 @@ module.exports = async (req, res) => {
       // md to HTML conversion
       if (ext === 'html' && fragment.mimeType === 'text/markdown') {
         const html = md.render(data.toString('utf-8'));
-        res.set('Content-Type', 'text/html');
+        res.setHeader('Content-Type', 'text/html'); //changed
         return res.status(200).send(html);
       }
 
@@ -135,15 +137,33 @@ module.exports = async (req, res) => {
       }
 
       if (fragment.mimeType === targetType || fragment.formats.includes(targetType)) {
-        res.set('Content-Type', targetType);
+        res.setHeader('Content-Type', targetType); //changed
         return res.status(200).send(data);
       }
 
       return res.status(415).json(createErrorResponse(415, `Conversion to .${ext} not supported`));
     }
 
+    // Case default - ensure exact header
+    // if (fragment.type === 'text/plain') {
+    //   res.set('Content-Type', 'text/plain'); // exact, no charset
+    //   return res.status(200).send(data);
+    // }
+
+    // if (fragment.type === 'application/json') {
+    //   res.set('Content-Type', 'application/json'); // exact
+    //   return res.status(200).send(JSON.stringify(JSON.parse(data.toString())));
+    // }
+
     // Case default
-    res.set('Content-Type', fragment.type);
+    // res.set('Content-Type', fragment.type);
+    // return res.status(200).send(data);
+
+    // const { type } = contentType.parse(fragment.type);
+    // res.setHeader('Content-Type', type);
+    // return res.status(200).send(data);
+
+    res.setHeader('Content-Type', fragment.type);
     return res.status(200).send(data);
   } catch (err) {
     console.error('Unexpected error fetching fragment data:', err);

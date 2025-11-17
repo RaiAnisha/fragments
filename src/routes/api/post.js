@@ -63,13 +63,23 @@
 const { Fragment } = require('../../model/fragment');
 const { writeFragment, writeFragmentData } = require('../../model/data');
 const { createSuccessResponse, createErrorResponse } = require('../../response');
+const hash = require('../../hash'); // adjust path if needed
 
 module.exports = async (req, res) => {
   try {
-    const ownerId = req.user.claims.sub;
-    const contentType = req.get('Content-Type');
+    //const ownerId = req.user.claims.sub; changed to the below
+    const ownerId = hash(req.user.claims);
 
-    if (!contentType || !Fragment.isSupportedType(contentType)) {
+    // const contentType = req.get('Content-Type');
+
+    // if (!contentType || !Fragment.isSupportedType(contentType)) {
+    //   return res
+    //     .status(415)
+    //     .json(createErrorResponse(415, `Unsupported Media Type: ${contentType}`));
+    // }
+    let contentType = req.get('Content-Type') || '';
+
+    if (!Fragment.isSupportedType(contentType)) {
       return res
         .status(415)
         .json(createErrorResponse(415, `Unsupported Media Type: ${contentType}`));
