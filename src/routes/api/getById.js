@@ -58,7 +58,7 @@ const { createErrorResponse } = require('../../response');
 const MarkdownIt = require('markdown-it');
 const md = new MarkdownIt();
 const hash = require('../../hash');
-const contentType = require('content-type');
+//const contentType = require('content-type');
 
 /**
  * GET /v1/fragments/:id

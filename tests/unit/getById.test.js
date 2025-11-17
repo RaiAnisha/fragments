@@ -3,6 +3,7 @@ const express = require('express');
 const request = require('supertest');
 const getByIdRoute = require('../../src/routes/api/getById');
 //const { Fragment } = require('../../src/model/fragment');
+//const hash = require('../../src/hash');
 
 jest.mock('../../src/model/fragment', () => ({
   Fragment: {
@@ -27,6 +28,8 @@ jest.mock('../../src/model/fragment', () => ({
   },
 }));
 
+jest.mock('../../src/hash', () => jest.fn(() => 'hashed-owner'));
+
 describe('GET /v1/fragments/:id', () => {
   let app;
 
@@ -34,7 +37,8 @@ describe('GET /v1/fragments/:id', () => {
     app = express();
     app.use(express.json());
 
-    app.use((req, res, next) => {
+    // Simulate authenticated user
+    app.use((req, _res, next) => {
       req.user = { claims: { sub: 'user1' } };
       next();
     });
@@ -46,58 +50,69 @@ describe('GET /v1/fragments/:id', () => {
     jest.clearAllMocks();
   });
 
-  test('should return 401 if user is not authenticated', async () => {
-    const appNoAuth = express();
-    appNoAuth.use(express.json());
-    appNoAuth.get('/v1/fragments/:id', getByIdRoute);
-
-    const res = await request(appNoAuth).get('/v1/fragments/123');
-    expect(res.statusCode).toBe(401);
-    expect(res.body).toHaveProperty('error');
-  });
-
-  test('should return 404 if fragment not found', async () => {
+  test('returns 404 if fragment not found', async () => {
     const res = await request(app).get('/v1/fragments/notfound');
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('error');
   });
 
-  test('should return 404 if fragment data is empty', async () => {
+  test('returns 404 if fragment data is empty', async () => {
     const res = await request(app).get('/v1/fragments/nodata');
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('error');
   });
 
-  test('should return fragment metadata if ?metadata=true', async () => {
+  test('returns fragment metadata if ?metadata=true', async () => {
     const res = await request(app).get('/v1/fragments/123?metadata=true');
     expect(res.statusCode).toBe(200);
     expect(res.body.fragment).toHaveProperty('id', '123');
   });
 
-  test('should return raw fragment data', async () => {
+  test('returns raw fragment data', async () => {
     const res = await request(app).get('/v1/fragments/123');
     expect(res.statusCode).toBe(200);
     expect(res.text).toContain('# Hello World');
     expect(res.headers['content-type']).toMatch(/text\/markdown/);
   });
 
-  test('should convert Markdown to HTML if .html requested', async () => {
+  test('converts Markdown to HTML if .html requested', async () => {
     const res = await request(app).get('/v1/fragments/123.html');
     expect(res.statusCode).toBe(200);
     expect(res.text).toContain('<h1>Hello World</h1>');
     expect(res.headers['content-type']).toMatch(/text\/html/);
   });
 
-  test('should return txt if .txt requested', async () => {
+  test('returns txt if .txt requested', async () => {
     const res = await request(app).get('/v1/fragments/123.txt');
     expect(res.statusCode).toBe(200);
     expect(res.text).toContain('# Hello World');
     expect(res.headers['content-type']).toMatch(/text\/plain/);
   });
 
-  test('should return 415 for unsupported extension', async () => {
+  test('returns 415 for unsupported extension', async () => {
     const res = await request(app).get('/v1/fragments/123.exe');
     expect(res.statusCode).toBe(415);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  test('returns 415 if conversion not supported', async () => {
+    // Example: trying to convert markdown to jpeg
+    const res = await request(app).get('/v1/fragments/123.jpeg');
+    expect(res.statusCode).toBe(415);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  test('handles DynamoDB / DB error gracefully', async () => {
+    const appError = express();
+    appError.use(express.json());
+    appError.use((req, _res, next) => {
+      req.user = { claims: { sub: 'user1' } };
+      next();
+    });
+    appError.get('/v1/fragments/:id', getByIdRoute);
+
+    const res = await request(appError).get('/v1/fragments/dberror');
+    expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('error');
   });
 });

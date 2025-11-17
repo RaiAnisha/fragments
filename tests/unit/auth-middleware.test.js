@@ -56,11 +56,11 @@ describe('auth-middleware', () => {
     expect(next).toHaveBeenCalled();
   });
 
-  test('returns 401 if user has no email', () => {
+  test('returns 401 if user is null', () => {
     passport.authenticate = jest.fn((strategy, options, callback) => {
       return (req, res, next) => {
         (void req, res, next);
-        callback(null, {});
+        callback(null, null); // triggers 401
       };
     });
 
@@ -84,5 +84,27 @@ describe('auth-middleware', () => {
     middleware(req, res, next);
 
     expect(next).toHaveBeenCalledWith(createErrorResponse(500, 'Unable to authenticate user'));
+  });
+
+  test('works with string user (legacy format)', () => {
+    passport.authenticate = jest.fn((strategy, options, callback) => {
+      return (req, res, next) => {
+        (void req, res, next);
+        callback(null, 'legacy-user@example.com');
+      };
+    });
+
+    const middleware = authMiddleware('bearer');
+    middleware(req, res, next);
+
+    expect(req.user).toEqual(
+      expect.objectContaining({
+        id: 'legacy-user@example.com',
+        username: 'legacy-user@example.com',
+        email: 'legacy-user@example.com',
+        hash: 'hashed-legacy-user@example.com',
+      })
+    );
+    expect(next).toHaveBeenCalled();
   });
 });

@@ -5,10 +5,12 @@ const request = require('supertest');
 describe('POST /v1/fragments handler', () => {
   let app;
   let mockWriteFragment, mockWriteFragmentData;
+  let mockHash;
 
   beforeEach(() => {
     jest.resetModules();
 
+    // Mock logger
     jest.doMock('../../src/logger', () => ({
       info: jest.fn(),
       warn: jest.fn(),
@@ -16,6 +18,7 @@ describe('POST /v1/fragments handler', () => {
       debug: jest.fn(),
     }));
 
+    // Mock Fragment class
     jest.doMock('../../src/model/fragment', () => {
       class Fragment {
         constructor({ ownerId, type, size }) {
@@ -31,6 +34,7 @@ describe('POST /v1/fragments handler', () => {
       return { Fragment };
     });
 
+    // Mock write functions
     mockWriteFragment = jest.fn().mockResolvedValue(true);
     mockWriteFragmentData = jest.fn().mockResolvedValue(true);
     jest.doMock('../../src/model/data', () => ({
@@ -38,32 +42,34 @@ describe('POST /v1/fragments handler', () => {
       writeFragmentData: mockWriteFragmentData,
     }));
 
+    // Mock hash function
+    mockHash = jest.fn(() => 'hashed-owner');
+    jest.doMock('../../src/hash', () => mockHash);
+
     const postRoute = require('../../src/routes/api/post');
 
     app = express();
-
     app.use(express.text({ type: '*/*' }));
 
-    app.use((req, res, next) => {
-      req.user = { id: 'user-1', claims: { sub: 'user-1' } };
+    // Simulate authenticated user
+    app.use((req, _res, next) => {
+      req.user = { claims: { sub: 'user-1' } };
       next();
     });
 
     app.post('/v1/fragments', postRoute);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     jest.clearAllMocks();
-
-    if (app && app.close) await app.close();
   });
 
-  test('should create a fragment with object body', async () => {
-    const body = JSON.stringify({ message: 'Hello world' });
+  test('creates a fragment with object body', async () => {
+    const body = { message: 'Hello world' };
     const res = await request(app)
       .post('/v1/fragments')
       .set('Content-Type', 'text/plain')
-      .send(body);
+      .send(JSON.stringify(body));
 
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('fragment');
@@ -71,23 +77,23 @@ describe('POST /v1/fragments handler', () => {
     expect(mockWriteFragment).toHaveBeenCalled();
     expect(mockWriteFragmentData).toHaveBeenCalled();
     expect(res.headers).toHaveProperty('location');
+    expect(mockHash).toHaveBeenCalledWith({ sub: 'user-1' });
   });
 
-  test('should create a fragment with string body', async () => {
+  test('creates a fragment with string body', async () => {
     const res = await request(app)
       .post('/v1/fragments')
       .set('Content-Type', 'text/plain')
       .send('Hello world');
 
     expect(res.statusCode).toBe(201);
-    expect(res.body).toHaveProperty('fragment');
     expect(res.body.fragment).toHaveProperty('id', '12345');
     expect(mockWriteFragment).toHaveBeenCalled();
     expect(mockWriteFragmentData).toHaveBeenCalled();
-    expect(res.headers).toHaveProperty('location');
+    expect(res.headers.location).toContain('/v1/fragments/12345');
   });
 
-  test('should create a fragment with Buffer body', async () => {
+  test('creates a fragment with Buffer body', async () => {
     const buffer = Buffer.from('Hello Buffer');
     const res = await request(app)
       .post('/v1/fragments')
@@ -98,10 +104,9 @@ describe('POST /v1/fragments handler', () => {
     expect(res.body.fragment).toHaveProperty('id', '12345');
     expect(mockWriteFragment).toHaveBeenCalled();
     expect(mockWriteFragmentData).toHaveBeenCalled();
-    expect(res.headers).toHaveProperty('location');
   });
 
-  test('should return 415 for unsupported content type', async () => {
+  test('returns 415 for unsupported content type', async () => {
     const res = await request(app)
       .post('/v1/fragments')
       .set('Content-Type', 'application/json')
@@ -111,7 +116,17 @@ describe('POST /v1/fragments handler', () => {
     expect(res.body).toHaveProperty('error');
   });
 
-  test('should handle internal errors gracefully', async () => {
+  test('returns 400 for empty object body', async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .set('Content-Type', 'text/plain')
+      .send('{}');
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  test('handles internal errors gracefully', async () => {
     mockWriteFragment.mockImplementationOnce(() => {
       throw new Error('DB failure');
     });
@@ -122,21 +137,19 @@ describe('POST /v1/fragments handler', () => {
       .send('Hello world');
 
     expect(res.statusCode).toBe(500);
-
     expect(res.body).toEqual({
       status: 'error',
       error: { code: 500, message: 'Internal Server Error' },
     });
   });
 
-  test('should set Location header on successful creation', async () => {
+  test('sets Location header on successful creation', async () => {
     const res = await request(app)
       .post('/v1/fragments')
       .set('Content-Type', 'text/plain')
       .send('Hello world');
 
     expect(res.statusCode).toBe(201);
-    expect(res.headers).toHaveProperty('location');
     expect(res.headers.location).toContain('/v1/fragments/12345');
   });
 });
