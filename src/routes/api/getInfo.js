@@ -1,11 +1,12 @@
 // src/routes/api/getInfo.js
 const { Fragment } = require('../../model/fragment');
 const { createSuccessResponse, createErrorResponse } = require('../../response');
+const hash = require('../../hash');
 
 module.exports = async (req, res) => {
   try {
     const { id } = req.params;
-    const ownerId = req.user.claims.sub;
+    const ownerId = hash(req.user.claims);
 
     const fragment = await Fragment.byId(ownerId, id);
 

@@ -10,6 +10,7 @@ const postRoute = require('./api/post');
 const getRoute = require('./api/get');
 const getByIdRoute = require('./api/getById');
 const getInfo = require('./api/getInfo');
+const deleteByIdRoute = require('./api/deleteById');
 
 const router = express.Router();
 const api = require('./api');
@@ -51,5 +52,7 @@ router.get('/fragments/:id', authenticate('bearer'), getByIdRoute);
 // GET /v1/fragments/:id/info → retrieve metadata for a fragment
 router.get('/fragments/:id/info', authenticate('bearer'), getInfo);
 // GET /v1/fragments/:id.:ext  -> works inside :id only!
+// DELETE /v1/fragments/:id  → delete a fragment and its data
+router.delete('/fragments/:id', authenticate('bearer'), deleteByIdRoute);
 
 module.exports = router;
