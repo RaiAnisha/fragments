@@ -5,7 +5,7 @@ const hash = require('../../hash');
 
 module.exports = async (req, res) => {
   try {
-    const ownerId = hash(req.user?.claims);
+    const ownerId = hash(JSON.stringify(req.user?.claims)); //JSON.stringify( neww
 
     if (!ownerId) {
       return res.status(401).json(createErrorResponse(401, 'Unauthorized'));

@@ -2,6 +2,8 @@
 const express = require('express');
 const request = require('supertest');
 const getByIdRoute = require('../../src/routes/api/getById');
+const { createSuccessResponse } = require('../../src/response');
+
 //const { Fragment } = require('../../src/model/fragment');
 //const hash = require('../../src/hash');
 
@@ -62,10 +64,27 @@ describe('GET /v1/fragments/:id', () => {
     expect(res.body).toHaveProperty('error');
   });
 
+  // test('returns fragment metadata if ?metadata=true', async () => {
+  //   const res = await request(app).get('/v1/fragments/123?metadata=true');
+  //   expect(res.statusCode).toBe(200);
+  //   expect(res.body.fragment).toHaveProperty('id', '123');
+  // });
   test('returns fragment metadata if ?metadata=true', async () => {
     const res = await request(app).get('/v1/fragments/123?metadata=true');
     expect(res.statusCode).toBe(200);
-    expect(res.body.fragment).toHaveProperty('id', '123');
+
+    expect(res.body).toEqual(
+      createSuccessResponse({
+        fragment: {
+          id: '123',
+          ownerId: 'hashed-owner', // matches actual hashed owner
+          type: 'text/markdown', // matches actual type
+          size: 10, // matches actual size
+          created: expect.any(String), // ignore exact timestamp
+          updated: expect.any(String), // ignore exact timestamp
+        },
+      })
+    );
   });
 
   test('returns raw fragment data', async () => {

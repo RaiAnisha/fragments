@@ -6,7 +6,7 @@ const hash = require('../../hash');
 module.exports = async (req, res) => {
   try {
     const { id } = req.params;
-    const ownerId = hash(req.user.claims);
+    const ownerId = hash(JSON.stringify(req.user.claims)); //JSON.stringify( neww
 
     const fragment = await Fragment.byId(ownerId, id);
 

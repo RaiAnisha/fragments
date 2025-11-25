@@ -64,6 +64,22 @@ describe('POST /v1/fragments handler', () => {
     jest.clearAllMocks();
   });
 
+  // test('creates a fragment with object body', async () => {
+  //   const body = { message: 'Hello world' };
+  //   const res = await request(app)
+  //     .post('/v1/fragments')
+  //     .set('Content-Type', 'text/plain')
+  //     .send(JSON.stringify(body));
+
+  //   expect(res.statusCode).toBe(201);
+  //   expect(res.body).toHaveProperty('fragment');
+  //   expect(res.body.fragment).toHaveProperty('id', '12345');
+  //   expect(mockWriteFragment).toHaveBeenCalled();
+  //   expect(mockWriteFragmentData).toHaveBeenCalled();
+  //   expect(res.headers).toHaveProperty('location');
+  //   expect(mockHash).toHaveBeenCalledWith({ sub: 'user-1' });
+  // });
+
   test('creates a fragment with object body', async () => {
     const body = { message: 'Hello world' };
     const res = await request(app)
@@ -77,7 +93,9 @@ describe('POST /v1/fragments handler', () => {
     expect(mockWriteFragment).toHaveBeenCalled();
     expect(mockWriteFragmentData).toHaveBeenCalled();
     expect(res.headers).toHaveProperty('location');
-    expect(mockHash).toHaveBeenCalledWith({ sub: 'user-1' });
+
+    // This is the line that caused the failure:
+    expect(mockHash).toHaveBeenCalledWith(JSON.stringify({ sub: 'user-1' }));
   });
 
   test('creates a fragment with string body', async () => {

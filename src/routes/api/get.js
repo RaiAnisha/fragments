@@ -63,7 +63,7 @@ module.exports = async (req, res) => {
   try {
     const expand = req.query.expand === '1';
     //const fragments = await Fragment.byUser(req.user.claims.sub, expand);
-    const ownerId = hash(req.user?.claims);
+    const ownerId = hash(JSON.stringify(req.user?.claims)); //JSON.stringify( neww
     const fragments = await Fragment.byUser(ownerId, expand);
     res.status(200).json(createSuccessResponse({ fragments }));
   } catch (err) {

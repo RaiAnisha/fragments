@@ -68,7 +68,7 @@ const hash = require('../../hash'); // adjust path if needed
 module.exports = async (req, res) => {
   try {
     //const ownerId = req.user.claims.sub; changed to the below
-    const ownerId = hash(req.user.claims);
+    const ownerId = hash(JSON.stringify(req.user.claims)); //JSON.stringify( neww
 
     // const contentType = req.get('Content-Type');
 
