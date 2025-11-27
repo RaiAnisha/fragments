@@ -23,6 +23,7 @@ jsonpath "$.fragment.updated" isString
 [Captures]
 fragment1_url: header "Location"
 fragment1_id: jsonpath "$.fragment.id"
+fragment1_ownerId: jsonpath "$.fragment.ownerId"
 
 # 2. GET fragment info and assert metadata
 GET {{fragment1_url}}/info
@@ -32,7 +33,7 @@ user1@email.com:password1
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.fragment.id" == "{{fragment1_id}}"
-jsonpath "$.fragment.ownerId" matches "^[0-9a-fA-F]+$"
+jsonpath "$.fragment.ownerId" == "{{fragment1_ownerId}}"
 jsonpath "$.fragment.type" == "application/json"
 jsonpath "$.fragment.size" == 22
 jsonpath "$.fragment.created" isString
@@ -60,6 +61,7 @@ jsonpath "$.fragment.updated" isString
 [Captures]
 fragment2_url: header "Location"
 fragment2_id: jsonpath "$.fragment.id"
+fragment2_ownerId: jsonpath "$.fragment.ownerId"
 
 # 4. GET second fragment info
 GET {{fragment2_url}}/info
@@ -69,7 +71,7 @@ user1@email.com:password1
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.fragment.id" == "{{fragment2_id}}"
-jsonpath "$.fragment.ownerId" matches "^[0-9a-fA-F]+$"
+jsonpath "$.fragment.ownerId" == "{{fragment2_ownerId}}"
 jsonpath "$.fragment.type" == "text/markdown"
 jsonpath "$.fragment.size" == 22
 jsonpath "$.fragment.created" isString
@@ -106,8 +108,5 @@ user1@email.com:password1
 
 HTTP/1.1 200
 [Asserts]
-# Instead of 'not matches', just check the second fragment exists
+# Confirm second fragment still exists
 jsonpath "$.fragments" contains "{{fragment2_id}}"
-# Optional: You can assert the first fragment is gone with a list filter if needed
-
-
