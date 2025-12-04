@@ -11,6 +11,7 @@ const getRoute = require('./api/get');
 const getByIdRoute = require('./api/getById');
 const getInfo = require('./api/getInfo');
 const deleteByIdRoute = require('./api/deleteById');
+const putRoute = require('./api/put');
 
 const router = express.Router();
 const api = require('./api');
@@ -43,6 +44,8 @@ const rawBody = () =>
     },
   });
 
+//PUT /v1/fragments/:id updates the fragment!
+router.put('/fragments/:id', authenticate('bearer'), rawBody(), putRoute);
 // GET /v1/fragments
 router.get('/fragments', authenticate('bearer'), getRoute);
 // POST /v1/fragments
