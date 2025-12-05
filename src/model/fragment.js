@@ -1,3 +1,4 @@
+//src/model/fragment.js
 // Use crypto.randomUUID() to create unique IDs, see:
 // https://nodejs.org/api/crypto.html#cryptorandomuuidoptions
 const { randomUUID } = require('crypto');
@@ -53,7 +54,7 @@ class Fragment {
     this.created = created || new Date().toISOString();
     this.updated = updated || new Date().toISOString();
   }
-
+  static supportedTypes = SUPPORTED_TYPES; // ✅ ADD THIS
   /**
    * Get all fragments (id or full) for the given user
    * @param {string} ownerId user's hashed email
@@ -204,14 +205,34 @@ class Fragment {
    * @param {string} value a Content-Type value (e.g., 'text/plain' or 'text/plain: charset=utf-8')
    * @returns {boolean} true if we support this Content-Type (i.e., type/subtype)
    */
+
+  // static isSupportedType(value) {
+  //   try {
+  //     const { type } = contentType.parse(value);
+  //     return ['text/plain', 'text/markdown', 'text/html', 'application/json'].includes(type);
+  //   } catch {
+  //     return false;
+  //   }
+  // }
+
   static isSupportedType(value) {
     try {
       const { type } = contentType.parse(value);
-      return ['text/plain', 'text/markdown', 'text/html', 'application/json'].includes(type);
+      return [
+        'text/plain',
+        'text/markdown',
+        'text/html',
+        'application/json',
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+        'image/gif',
+      ].includes(type);
     } catch {
       return false;
     }
   }
+  //making new for images
 }
 
 module.exports.Fragment = Fragment;

@@ -69,6 +69,7 @@ module.exports = async (req, res) => {
   try {
     //const ownerId = req.user.claims.sub; changed to the below
     const ownerId = hash(JSON.stringify(req.user.claims)); //JSON.stringify( neww
+    console.log(req, res);
 
     // const contentType = req.get('Content-Type');
 

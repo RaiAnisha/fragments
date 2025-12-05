@@ -10,8 +10,15 @@ const pino = require('pino-http')({ logger });
 const { createSuccessResponse } = require('./response');
 const { version, author } = require('../package.json'); ////new to make it work on localhost
 
+const corsOptions = {
+  origin: '*', // or your frontend URL, e.g., 'http://localhost:1234'
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}; //new to post drag drop
+
 const app = express();
-app.use(cors());
+//app.use(cors());
+app.use(cors(corsOptions)); //new to post drag drop
 app.use(pino);
 app.use(helmet());
 
@@ -21,10 +28,20 @@ const { createErrorResponse } = require('./response');
 // Passport auth
 passport.use(authenticate.strategy());
 app.use(passport.initialize());
-app.use(express.json());
+//app.use(express.json());
+//app.use('/v1', express.json());
 
 //app.get('/v1/test', (req, res) => res.json({ ok: true })); //test
+// Handle CORS preflight requests dynamically
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return cors(corsOptions)(req, res, next);
+  }
+  next();
+});
+
 // Routes
+app.use(express.raw({ type: '*/*', limit: '20mb' }));
 app.use('/v1', require('./routes'));
 
 app.get('/', (req, res) => {
@@ -53,5 +70,7 @@ app.use((err, req, res) => {
 
   res.status(status).json(createErrorResponse(status, message));
 });
+const { Fragment } = require('./model/fragment');
+console.log('SUPPORTED TYPES!:', Fragment.supportedTypes);
 
 module.exports = app;

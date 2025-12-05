@@ -1,10 +1,10 @@
 // src/routes/index.js
 const { authenticate } = require('../auth');
 const express = require('express');
-const contentType = require('content-type');
+//const contentType = require('content-type');
 const { createSuccessResponse } = require('../response');
 const { version, author } = require('../../package.json');
-const { Fragment } = require('../model/fragment');
+//const { Fragment } = require('../model/fragment');
 
 const postRoute = require('./api/post');
 const getRoute = require('./api/get');
@@ -30,18 +30,24 @@ router.get('/', (req, res) => {
 });
 
 // Raw body parser (reusable)
+// const rawBody = () =>
+//   express.raw({
+//     inflate: true,
+//     limit: '5mb',
+//     type: (req) => {
+//       try {
+//         const { type } = contentType.parse(req);
+//         return Fragment.isSupportedType(type);
+//       } catch {
+//         return false;
+//       }
+//     },
+//   });
 const rawBody = () =>
   express.raw({
     inflate: true,
-    limit: '5mb',
-    type: (req) => {
-      try {
-        const { type } = contentType.parse(req);
-        return Fragment.isSupportedType(type);
-      } catch {
-        return false;
-      }
-    },
+    limit: '10mb',
+    type: () => true, // accept all types, raw body is parsed
   });
 
 //PUT /v1/fragments/:id updates the fragment!
@@ -49,7 +55,7 @@ router.put('/fragments/:id', authenticate('bearer'), rawBody(), putRoute);
 // GET /v1/fragments
 router.get('/fragments', authenticate('bearer'), getRoute);
 // POST /v1/fragments
-router.post('/fragments', authenticate(), rawBody(), postRoute);
+router.post('/fragments', authenticate('bearer'), rawBody(), postRoute);
 // GET fragment by ID
 router.get('/fragments/:id', authenticate('bearer'), getByIdRoute);
 // GET /v1/fragments/:id/info → retrieve metadata for a fragment
