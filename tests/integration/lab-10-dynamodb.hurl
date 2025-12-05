@@ -73,7 +73,7 @@ HTTP/1.1 200
 jsonpath "$.fragment.id" == "{{fragment2_id}}"
 jsonpath "$.fragment.ownerId" == "{{fragment2_ownerId}}"
 jsonpath "$.fragment.type" == "text/markdown"
-jsonpath "$.fragment.size" == 23
+jsonpath "$.fragment.size" == 22
 jsonpath "$.fragment.created" isString
 jsonpath "$.fragment.updated" isString
 
