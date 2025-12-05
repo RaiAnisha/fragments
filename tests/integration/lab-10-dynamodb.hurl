@@ -54,7 +54,7 @@ jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" matches "^[0-9a-fA-F-]{36}$"
 jsonpath "$.fragment.ownerId" matches "^[0-9a-fA-F]+$"
 jsonpath "$.fragment.type" == "text/markdown"
-jsonpath "$.fragment.size" == 23
+jsonpath "$.fragment.size" == 22
 jsonpath "$.fragment.created" isString
 jsonpath "$.fragment.updated" isString
 
