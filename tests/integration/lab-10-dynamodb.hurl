@@ -16,7 +16,7 @@ jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" matches "^[0-9a-fA-F-]{36}$"
 jsonpath "$.fragment.ownerId" matches "^[0-9a-fA-F]+$"
 jsonpath "$.fragment.type" == "application/json"
-jsonpath "$.fragment.size" == 22
+jsonpath "$.fragment.size" == 23
 jsonpath "$.fragment.created" isString
 jsonpath "$.fragment.updated" isString
 
@@ -35,7 +35,7 @@ HTTP/1.1 200
 jsonpath "$.fragment.id" == "{{fragment1_id}}"
 jsonpath "$.fragment.ownerId" == "{{fragment1_ownerId}}"
 jsonpath "$.fragment.type" == "application/json"
-jsonpath "$.fragment.size" == 22
+jsonpath "$.fragment.size" == 23
 jsonpath "$.fragment.created" isString
 jsonpath "$.fragment.updated" isString
 
@@ -54,7 +54,7 @@ jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" matches "^[0-9a-fA-F-]{36}$"
 jsonpath "$.fragment.ownerId" matches "^[0-9a-fA-F]+$"
 jsonpath "$.fragment.type" == "text/markdown"
-jsonpath "$.fragment.size" == 22
+jsonpath "$.fragment.size" == 23
 jsonpath "$.fragment.created" isString
 jsonpath "$.fragment.updated" isString
 
@@ -73,7 +73,7 @@ HTTP/1.1 200
 jsonpath "$.fragment.id" == "{{fragment2_id}}"
 jsonpath "$.fragment.ownerId" == "{{fragment2_ownerId}}"
 jsonpath "$.fragment.type" == "text/markdown"
-jsonpath "$.fragment.size" == 22
+jsonpath "$.fragment.size" == 23
 jsonpath "$.fragment.created" isString
 jsonpath "$.fragment.updated" isString
 
