@@ -28,26 +28,11 @@ router.get('/', (req, res) => {
     })
   );
 });
-
-// Raw body parser (reusable)
-// const rawBody = () =>
-//   express.raw({
-//     inflate: true,
-//     limit: '5mb',
-//     type: (req) => {
-//       try {
-//         const { type } = contentType.parse(req);
-//         return Fragment.isSupportedType(type);
-//       } catch {
-//         return false;
-//       }
-//     },
-//   });
 const rawBody = () =>
   express.raw({
     inflate: true,
     limit: '10mb',
-    type: () => true, // accept all types, raw body is parsed
+    type: () => true,
   });
 
 //PUT /v1/fragments/:id updates the fragment!

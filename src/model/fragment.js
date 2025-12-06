@@ -25,6 +25,7 @@ const SUPPORTED_TYPES = [
   'image/jpeg',
   'image/webp',
   'image/gif',
+  'image/avif',
 ];
 
 class Fragment {
@@ -227,6 +228,7 @@ class Fragment {
         'image/jpeg',
         'image/webp',
         'image/gif',
+        'image/avif',
       ].includes(type);
     } catch {
       return false;

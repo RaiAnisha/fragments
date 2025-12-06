@@ -41,9 +41,15 @@
 // src/routes/api/index.js
 const express = require('express');
 const router = express.Router();
+const authenticate = require('../auth');
 
 // Only export handlers for fragments
 router.get('/fragments', require('./get'));
-router.post('/fragments', require('./post'));
+router.post(
+  '/fragments',
+  authenticate('bearer'),
+  express.raw({ type: '*/*', limit: '5mb' }),
+  require('./api/post')
+);
 
 module.exports = router;

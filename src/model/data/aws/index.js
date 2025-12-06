@@ -10,18 +10,6 @@ const { PutCommand, GetCommand, QueryCommand, DeleteCommand } = require('@aws-sd
 
 const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3'); //l9
 
-// Creating two in-memory databases: one for fragment metadata and the other for raw data
-//const data = new MemoryDB();
-//const metadata = new MemoryDB();
-
-// // Write a fragment's metadata to memory db. Returns a Promise<void>
-// function writeFragment(fragment) {
-//   // Simulate db/network serialization of the value, storing only JSON representation.
-//   // This is important because it's how things will work later with AWS data stores.
-//   const serialized = JSON.stringify(fragment);
-//   return metadata.put(fragment.ownerId, fragment.id, serialized);
-// }
-
 console.log('AWS_REGION', process.env.AWS_REGION);
 
 //l -10
@@ -43,15 +31,6 @@ function writeFragment(fragment) {
     throw err;
   }
 }
-
-// // Read a fragment's metadata from memory db. Returns a Promise<Object>
-// async function readFragment(ownerId, id) {
-//   // NOTE: this data will be raw JSON, we need to turn it back into an Object.
-//   // You'll need to take care of converting this back into a Fragment instance
-//   // higher up in the callstack.
-//   const serialized = await metadata.get(ownerId, id);
-//   return typeof serialized === 'string' ? JSON.parse(serialized) : serialized;
-// }
 
 // l - 10
 // Reads a fragment from DynamoDB. Returns a Promise<fragment|undefined>
@@ -158,44 +137,6 @@ async function readFragmentData(ownerId, id) {
   }
 }
 
-// Get a list of fragment ids/objects for the given user from memory db. Returns a Promise
-// async function listFragments(ownerId, expand = false) {
-//   const fragments = await metadata.query(ownerId);
-
-//   // If we don't get anything back, or are supposed to give expanded fragments, return
-//   if (expand || !fragments) {
-//     return fragments;
-//   }
-
-//   // Otherwise, map to only send back the ids
-//   return fragments.map((fragment) => fragment.id);
-// }
-
-// // Get a list of fragment ids/objects for the given user from memory db. Returns a Promise
-// async function listFragments(ownerId, expand = false) {
-//   const fragments = await metadata.query(ownerId);
-
-//   if (!fragments) {
-//     return []; // no fragments
-//   }
-
-//   if (expand) {
-//     return fragments.map((fragment) => JSON.parse(fragment));
-//   } else {
-//     // Only return fragment IDs
-//     return fragments
-//       .map((fragment) => {
-//         try {
-//           return JSON.parse(fragment).id;
-//         } catch (err) {
-//           console.error('Error parsing fragment:', fragment, err);
-//           return null; // skip invalid entries
-//         }
-//       })
-//       .filter((id) => id !== null); // removing nulls
-//   }
-// }
-
 //l - 10
 // Get a list of fragments, either ids-only, or full Objects, for the given user.
 // Returns a Promise<Array<Fragment>|Array<string>|undefined>
@@ -236,39 +177,6 @@ async function listFragments(ownerId, expand = false) {
     throw err;
   }
 }
-
-// Delete a fragment's metadata and data from memory db. Returns a Promise
-// function deleteFragment(ownerId, id) {
-//   return Promise.all([
-//     // Delete metadata
-//     metadata.del(ownerId, id),
-//     // Delete data
-//     data.del(ownerId, id),
-//   ]);
-// }
-
-// // Deletes both the metadata (MemoryDB) and the data in S3
-// async function deleteFragment(ownerId, id) {
-//   // 1. Delete metadata using MemoryDB (temporary until DynamoDB)
-//   //MemoryDB.delFragment(ownerId, id);
-//   await metadata.del(ownerId, id);
-
-//   // 2. Delete the associated data in S3
-//   const params = {
-//     Bucket: process.env.AWS_S3_BUCKET_NAME,
-//     Key: `${ownerId}/${id}`,
-//   };
-
-//   const command = new DeleteObjectCommand(params);
-
-//   try {
-//     await s3Client.send(command);
-//   } catch (err) {
-//     const { Bucket, Key } = params;
-//     logger.error({ err, Bucket, Key }, 'Error deleting fragment data from S3');
-//     throw new Error('unable to delete fragment data');
-//   }
-// }
 
 //l - 10
 async function deleteFragment(ownerId, id) {

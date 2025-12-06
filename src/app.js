@@ -11,7 +11,7 @@ const { createSuccessResponse } = require('./response');
 const { version, author } = require('../package.json'); ////new to make it work on localhost
 
 const corsOptions = {
-  origin: '*', // or your frontend URL, e.g., 'http://localhost:1234'
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }; //new to post drag drop
