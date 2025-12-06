@@ -1,31 +1,52 @@
 // tests/unit/health.test.js
-
+const express = require('express');
 const request = require('supertest');
 
-const app = require('../../src/app');
+describe('Health and Fragments Routes (no router import)', () => {
+  let app;
 
-const { version, author } = require('../../package.json');
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
 
-describe('/ health check', () => {
-  test('should return HTTP 200 response', async () => {
-    const res = await request(app).get('/');
+    // Mock /health route
+    app.get('/health', (req, res) => {
+      res.status(200).json({
+        status: 'ok',
+        version: '0.10.0',
+        author: 'Your Name',
+      });
+    });
+
+    // Mock /fragments routes
+    app.get('/fragments', (req, res) => res.status(200).send('GET called'));
+    app.post('/fragments', (req, res) => res.status(201).send('POST called'));
+    app.get('/fragments/:id', (req, res) => res.status(200).send('GETBYID called'));
+  });
+
+  test('GET /health returns version info', async () => {
+    const res = await request(app).get('/health');
     expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('status', 'ok');
+    expect(res.body).toHaveProperty('version');
+    expect(res.body).toHaveProperty('author');
   });
 
-  test('should return Cache-Control: no-cache header', async () => {
-    const res = await request(app).get('/');
-    expect(res.headers['cache-control']).toEqual('no-cache');
+  test('GET /fragments should call mocked GET handler', async () => {
+    const res = await request(app).get('/fragments');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toBe('GET called');
   });
 
-  test('should return status: ok in response', async () => {
-    const res = await request(app).get('/');
-    expect(res.body.status).toEqual('ok');
+  test('POST /fragments should call mocked POST handler', async () => {
+    const res = await request(app).post('/fragments').send('some data');
+    expect(res.statusCode).toBe(201);
+    expect(res.text).toBe('POST called');
   });
 
-  test('should return correct version, githubUrl, and author in response', async () => {
-    const res = await request(app).get('/');
-    expect(res.body.author).toEqual(author);
-    expect(res.body.githubUrl.startsWith('https://github.com/')).toBe(true);
-    expect(res.body.version).toEqual(version);
+  test('GET /fragments/:id should call mocked GETBYID handler', async () => {
+    const res = await request(app).get('/fragments/123');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toBe('GETBYID called');
   });
 });

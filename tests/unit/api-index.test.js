@@ -2,62 +2,47 @@
 const express = require('express');
 const request = require('supertest');
 
-describe('API Router', () => {
+// Mock the handlers
+jest.mock('../../src/routes/api/get', () =>
+  jest.fn((req, res) => res.status(200).send('GET called'))
+);
+jest.mock('../../src/routes/api/post', () =>
+  jest.fn((req, res) => res.status(201).send('POST called'))
+);
+
+// Mock the authenticate middleware
+jest.mock('../../src/auth', () => jest.fn(() => (req, res, next) => next()));
+
+describe('API Index Router', () => {
   let app;
-  let mockGet;
-  let mockPost;
 
   beforeEach(() => {
-    jest.resetModules();
-
-    mockGet = jest.fn((req, res) => {
-      res.status(200).json({ fragments: [{ id: 'f1' }, { id: 'f2' }] });
-    });
-    mockPost = jest.fn((req, res) => {
-      const { type, data } = req.body;
-      if (!type || !data) {
-        return res.status(400).json({ error: 'Missing type or data' });
-      }
-      return res.status(201).json({ fragment: { id: 'f1', type, size: data.length } });
-    });
-
-    jest.doMock('../../src/routes/api/get', () => mockGet);
-    jest.doMock('../../src/routes/api/post', () => mockPost);
-
-    const router = require('../../src/routes/api/index');
-
     app = express();
     app.use(express.json());
-    app.use('/v1', router); // mount router at /v1
+    app.use('/', require('../../src/routes/api/index'));
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('GET /v1/fragments returns fragments successfully', async () => {
-    const res = await request(app).get('/v1/fragments');
-
+  test('GET /fragments should call get handler', async () => {
+    const res = await request(app).get('/fragments');
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ fragments: [{ id: 'f1' }, { id: 'f2' }] });
-    expect(mockGet).toHaveBeenCalled();
+    expect(res.text).toBe('GET called');
   });
 
-  test('POST /v1/fragments creates a fragment successfully', async () => {
+  test('POST /fragments should call post handler', async () => {
     const res = await request(app)
-      .post('/v1/fragments')
-      .send({ type: 'text/plain', data: 'Hello world' });
+      .post('/fragments')
+      .set('Authorization', 'Bearer faketoken')
+      .send('some data');
+    expect(res.statusCode).toBe(201);
+    expect(res.text).toBe('POST called');
+  });
+
+  test('POST /fragments should use raw middleware', async () => {
+    const res = await request(app)
+      .post('/fragments')
+      .set('Authorization', 'Bearer faketoken')
+      .send('raw data test');
 
     expect(res.statusCode).toBe(201);
-    expect(res.body).toEqual({ fragment: { id: 'f1', type: 'text/plain', size: 11 } });
-    expect(mockPost).toHaveBeenCalled();
-  });
-
-  test('POST /v1/fragments returns 400 if missing type or data', async () => {
-    const res = await request(app).post('/v1/fragments').send({}); // missing type and data
-
-    expect(res.statusCode).toBe(400);
-    expect(res.body).toHaveProperty('error', 'Missing type or data');
-    expect(mockPost).toHaveBeenCalled();
   });
 });

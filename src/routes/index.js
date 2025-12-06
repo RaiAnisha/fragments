@@ -1,5 +1,6 @@
 // src/routes/index.js
 const { authenticate } = require('../auth');
+//const authenticate = require('../auth');
 const express = require('express');
 //const contentType = require('content-type');
 const { createSuccessResponse } = require('../response');
