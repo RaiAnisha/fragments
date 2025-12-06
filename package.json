@@ -1,7 +1,7 @@
 {
   "name": "fragments",
   "private": true,
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "set-up workshop (sem 5)...Fragments back-end API",
   "scripts": {
     "test:watch": "jest -c jest.config.js --runInBand --watch --",
@@ -13,7 +13,6 @@
     "debug": "LOG_LEVEL=debug nodemon --inspect=0.0.0.0:9229 ./src/index.js --watch src",
     "test:integration": "hurl --test --glob \"tests/integration/**/*.hurl\"",
     "integration-ci": "start-server-and-test start http://localhost:8080 test:integration"
-
   },
   "repository": {
     "type": "git",
